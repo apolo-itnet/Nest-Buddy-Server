@@ -59,12 +59,33 @@ async function run() {
       res.send(result);
     });
 
+
+
     app.get("/listingsRooms/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await roomsCollection.findOne(query);
       res.send(result);
     });
+
+    app.get("/listings", async (req, res) => {
+      const filter = {};
+      const availability = req.query.availability;
+      const sortBy = req.query.sortBy || "createdAt";
+      const order = req.query.order === "desc" ? -1 : 1;
+
+      if (availability) {
+        filter.availability = availability;
+      }
+
+      const result = await listingsCollection
+        .find(filter)
+        .sort({ [sortBy]: order })
+        .toArray();
+
+      res.send(result);
+    });
+
 
     app.post("/listingsRooms", async (req, res) => {
       const addRoom = {
@@ -145,6 +166,20 @@ async function run() {
       const updatedRoom = await roomsCollection.findOne(filter);
       res.send({ likes: updatedRoom.likes });
     });
+
+
+    // Stats API
+    app.get("/stats/dashboard", async (req, res) => {
+      const email = req.query.email;
+
+      const totalPosts = await roomsCollection.countDocuments();
+      const myPosts = await roomsCollection.countDocuments({ email: email });
+      const availableRooms = await roomsCollection.countDocuments({ availability: "Available" });
+      const immediateRooms = await roomsCollection.countDocuments({ availability: "Immediate" });
+
+      res.send({ totalPosts, myPosts, availableRooms, immediateRooms });
+
+    })
 
     //8 limit & availability API 
     app.get("/featuredRooms", async (req, res) => {
