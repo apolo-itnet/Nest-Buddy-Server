@@ -71,20 +71,15 @@ async function run() {
     app.get("/listings", async (req, res) => {
       const filter = {};
       const availability = req.query.availability;
-      const sortBy = req.query.sortBy || "createdAt";
-      const order = req.query.order === "desc" ? -1 : 1;
 
       if (availability) {
-        filter.availability = availability;
+        filter.availability = availability; 
       }
 
-      const result = await listingsCollection
-        .find(filter)
-        .sort({ [sortBy]: order })
-        .toArray();
-
+      const result = await listingsCollection.find(filter).toArray();
       res.send(result);
     });
+
 
 
     app.post("/listingsRooms", async (req, res) => {
